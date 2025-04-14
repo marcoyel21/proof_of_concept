@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Upload Form</title>
+</head>
+<body>
+    <h2>Submit Data</h2>
+    <form id="dataForm">
+        Name: <input type="text" id="name" required><br>
+        Image: <input type="file" id="image" accept="image/*" required><br>
+        <button type="submit">Upload</button>
+    </form>
+
+    <script>
+        document.getElementById('dataForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const name = document.getElementById('name').value;
+            const image = document.getElementById('image').files[0];
+
+            navigator.geolocation.getCurrentPosition(async function(pos) {
+                const formData = new FormData();
+                formData.append('name', name);
+                formData.append('lat', pos.coords.latitude);
+                formData.append('lng', pos.coords.longitude);
+                formData.append('image', image);
+
+                const res = await fetch('http://<your-aws-backend-endpoint>/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                alert(await res.text());
+            }, function(err) {
+                alert('Geolocation failed: ' + err.message);
+            });
+        });
+    </script>
+</body>
+</html>
