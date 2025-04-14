@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Upload Form</title>
+  <title>Plataforma de fiscalización</title>
   <link
     rel="stylesheet"
     href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
@@ -20,11 +20,11 @@
   </style>
 </head>
 <body>
-  <h2>Submit Data</h2>
+  <h2>Ingresar info</h2>
   <form id="dataForm">
-    Name: <input type="text" id="name" required><br>
-    Image: <input type="file" id="image" accept="image/*" required><br>
-    <button type="submit">Upload</button>
+    Nombre: <input type="text" id="name" required><br>
+    Imagen: <input type="file" id="image" accept="image/*" required><br>
+    <button type="submit">Subir</button>
   </form>
 
   <div id="map-message"></div>
@@ -58,8 +58,7 @@
           showMap(lat, lng);
         },
         async function(err) {
-          formData.append('lat', '');
-          formData.append('lng', '');
+          // ⛔️ NO mandamos lat/lng vacíos
           await sendForm(formData);
           showNoLocationMessage();
         }
@@ -67,7 +66,8 @@
 
       async function sendForm(formData) {
         try {
-          const res = await fetch('/upload', {
+          const backendURL = `${window.location.origin}/upload`;
+          const res = await fetch(backendURL, {
             method: 'POST',
             body: formData
           });
@@ -91,7 +91,7 @@
           attribution: '&copy; OpenStreetMap contributors'
         }).addTo(map);
         L.marker([lat, lng]).addTo(map)
-          .bindPopup('You are here.')
+          .bindPopup('Estás aquí.')
           .openPopup();
       }
 
