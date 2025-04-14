@@ -3,3 +3,4 @@ uvicorn
 boto3
 python-multipart
 mysql-connector-python
+python-dotenv

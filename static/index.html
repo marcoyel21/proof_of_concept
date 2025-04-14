@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Upload Form</title>
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+  />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <style>
+    #map {
+      height: 300px;
+      margin-top: 20px;
+      display: none;
+    }
+    #map-message {
+      margin-top: 10px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h2>Submit Data</h2>
+  <form id="dataForm">
+    Name: <input type="text" id="name" required><br>
+    Image: <input type="file" id="image" accept="image/*" required><br>
+    <button type="submit">Upload</button>
+  </form>
+
+  <div id="map-message"></div>
+  <div id="map"></div>
+
+  <script>
+    document.getElementById('dataForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+
+      const name = document.getElementById('name').value;
+      const image = document.getElementById('image').files[0];
+
+      if (!image) {
+        alert("Please select an image.");
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('name', name);
+      formData.append('image', image);
+
+      navigator.geolocation.getCurrentPosition(
+        async function(pos) {
+          const lat = pos.coords.latitude;
+          const lng = pos.coords.longitude;
+
+          formData.append('lat', lat);
+          formData.append('lng', lng);
+
+          await sendForm(formData);
+          showMap(lat, lng);
+        },
+        async function(err) {
+          formData.append('lat', '');
+          formData.append('lng', '');
+          await sendForm(formData);
+          showNoLocationMessage();
+        }
+      );
+
+      async function sendForm(formData) {
+        try {
+          const res = await fetch('/upload', {
+            method: 'POST',
+            body: formData
+          });
+
+          if (!res.ok) throw new Error("Upload failed: " + res.status);
+
+          const data = await res.json();
+          alert(data.message);
+        } catch (err) {
+          console.error("Upload error:", err);
+          alert("Error uploading: " + err.message);
+        }
+      }
+
+      function showMap(lat, lng) {
+        document.getElementById("map-message").innerText = "📍 Location detected:";
+        document.getElementById("map").style.display = "block";
+
+        const map = L.map('map').setView([lat, lng], 13);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+        L.marker([lat, lng]).addTo(map)
+          .bindPopup('You are here.')
+          .openPopup();
+      }
+
+      function showNoLocationMessage() {
+        document.getElementById("map-message").innerText = "📍 No location provided.";
+        document.getElementById("map").style.display = "none";
+      }
+    });
+  </script>
+</body>
+</html>
